@@ -14,6 +14,7 @@ extern crate kafi;
 use kafi::HashMap;
 
 let mut col:HashMap<String, String> = HashMap::open("kafi.db").unwrap();
+
 col.insert("satu".to_string(), "111".to_string());
 assert_eq!(col.exists("satu"), true);
 
