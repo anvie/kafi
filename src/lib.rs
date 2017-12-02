@@ -2,7 +2,7 @@
 extern crate serde;
 extern crate bincode;
 
-use std::fs::{OpenOptions};
+use std::fs::OpenOptions;
 use std::io::{Read, Write};
 use std::hash::Hash;
 use std::cmp::Eq;
