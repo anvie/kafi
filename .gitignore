@@ -1,0 +1,7 @@
+target/
+.idea
+*.iml
+*.log
+*.bak
+*.lock
+.DS_Store
