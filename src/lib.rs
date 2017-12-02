@@ -16,7 +16,9 @@ use serde::ser::Serialize;
 use serde::de::DeserializeOwned;
 use bincode::{serialize, deserialize, Infinite};
 
-pub struct HashMap<K, V> {
+pub struct HashMap<K, V>
+    where K: Serialize + DeserializeOwned + Eq + Hash,
+          V: Serialize + DeserializeOwned + Eq + Hash {
     file_path: PathBuf,
     data: StdHashMap<K, V>
 }
@@ -30,12 +32,13 @@ impl<K, V> HashMap<K, V>
 
         let _new = !path.exists();
 
-        let mut file =
-            OpenOptions::new().read(true).write(true).create(true).append(true)
-                .open(path)
-                .map_err(|e| e.description().to_string())?;
-
         let data = if !_new {
+
+            let mut file =
+                OpenOptions::new().read(true).write(true).create(true).append(true)
+                    .open(path)
+                    .map_err(|e| e.description().to_string())?;
+
             let mut buf = Vec::new();
 
             let read = file.read_to_end(&mut buf)
@@ -77,8 +80,7 @@ impl<K, V> HashMap<K, V>
         self.data.remove(key)
     }
 
-    pub fn flush(&mut self) -> Result<(), String>
-        where K: std::fmt::Display, V: std::fmt::Display {
+    pub fn flush(&mut self) -> Result<(), String> {
 
         let mut file =
             OpenOptions::new().write(true).create(true).truncate(true)
@@ -92,13 +94,22 @@ impl<K, V> HashMap<K, V>
     }
 }
 
+impl<K, V> Drop for HashMap<K, V>
+    where K: Serialize + DeserializeOwned + Eq + Hash,
+          V: Serialize + DeserializeOwned + Eq + Hash {
+
+    fn drop(&mut self) {
+        self.flush().unwrap()
+    }
+}
+
 #[cfg(test)]
 mod test {
 
     use super::*;
 
     fn _gen_col() -> HashMap<String, String> {
-        let mut col = HashMap::open("/tmp/fileshashcol.db").unwrap();
+        let mut col = HashMap::open("/tmp/_kafi_test_.db").unwrap();
         col.insert("satu".to_string(), "111".to_string());
         let _ = col.flush();
         col
@@ -127,10 +138,10 @@ mod test {
 
     #[test]
     fn test_already_filled(){
-        let path = "/tmp/fileshashcol2.db";
+        let path = "/tmp/_kafi_test_2.db";
         {
             use std::fs;
-            fs::remove_file(path).unwrap();
+            let _ = fs::remove_file(path);
         }
         {
             let mut col:HashMap<String, String> = HashMap::open(path).unwrap();
@@ -146,6 +157,21 @@ mod test {
             assert_eq!(col.get("lima"), Some(&"555".to_string()));
             col.flush().unwrap();
         }
+    }
+    
+    #[test]
+    fn test_auto_flush(){
+        let path = "/tmp/_kafi_test_3.db";
+        {
+            use std::fs;
+            let _ = fs::remove_file(path);
+        }
+        {
+            let mut col:HashMap<String, String> = HashMap::open(path).unwrap();
+            col.insert("satu".to_string(), "111".to_string());
+            assert_eq!(std::path::Path::new(path).exists(), false);
+        }
+        assert_eq!(std::path::Path::new(path).exists(), true);
     }
 }
 
