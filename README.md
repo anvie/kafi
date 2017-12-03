@@ -6,6 +6,14 @@ KAFI
 
 Persistent key value store library for Rust.
 
+Install
+--------
+
+```
+[dependencies]
+kafi = "0.1.0"
+```
+
 
 Usage
 ------
