@@ -92,6 +92,11 @@ impl<K, V> Store<K, V>
         file.write_all(&*encoded)
             .map_err(|e| e.description().to_string())
     }
+
+    pub fn get_path<'a>(&'a self) -> &Path {
+        self.file_path.as_path()
+    }
+
 }
 
 impl<K, V> Drop for Store<K, V>
@@ -106,10 +111,24 @@ impl<K, V> Drop for Store<K, V>
 #[cfg(test)]
 mod test {
 
+    extern crate rand;
+
+    use std::env;
+    use std::fs::remove_file;
+    use test::rand::Rng;
     use super::*;
 
+    fn _gen_filename() -> String {
+        let mut dir = env::temp_dir();
+        let file_name:String = rand::thread_rng().gen_ascii_chars().take(12).collect();
+        dir.push(file_name);
+        dir.set_extension("kafidb");
+        println!("{:?}", dir.as_path().display());
+        dir.into_os_string().into_string().unwrap()
+    }
+
     fn _gen_col() -> Store<String, String> {
-        let mut col = Store::open("/tmp/_kafi_test_.db").unwrap();
+        let mut col = Store::open(&_gen_filename()).unwrap();
         col.insert("satu".to_string(), "111".to_string());
         let _ = col.flush();
         col
@@ -120,6 +139,7 @@ mod test {
         let mut col = _gen_col();
         assert_eq!(col.exists("satu"), true);
         assert_eq!(col.exists("dua"), false);
+        remove_file(col.get_path()).unwrap();
     }
 
     #[test]
@@ -127,6 +147,7 @@ mod test {
         let mut col = _gen_col();
         assert_eq!(col.get("satu"), Some(&"111".to_string()));
         assert_eq!(col.get("lima"), None);
+        remove_file(col.get_path()).unwrap();
     }
 
     #[test]
@@ -134,22 +155,23 @@ mod test {
         let mut col = _gen_col();
         assert_eq!(col.remove("satu"), Some("111".to_string()));
         assert_eq!(col.exists("satu"), false);
+        remove_file(col.get_path()).unwrap();
     }
 
     #[test]
     fn test_already_filled(){
-        let path = "/tmp/_kafi_test_2.db";
+        let path = _gen_filename();
         {
             use std::fs;
-            let _ = fs::remove_file(path);
+            let _ = fs::remove_file(&path);
         }
         {
-            let mut col:Store<String, String> = Store::open(path).unwrap();
+            let mut col:Store<String, String> = Store::open(&path).unwrap();
             col.insert("satu".to_string(), "111".to_string());
             col.flush().unwrap();
         }
         {
-            let mut col:Store<String, String> = Store::open(path).unwrap();
+            let mut col:Store<String, String> = Store::open(&path).unwrap();
             assert_eq!(col.exists("satu"), true);
             assert_eq!(col.get("satu"), Some(&"111".to_string()));
             assert_eq!(col.get("lima"), None);
@@ -157,20 +179,22 @@ mod test {
             assert_eq!(col.get("lima"), Some(&"555".to_string()));
             col.flush().unwrap();
         }
+        remove_file(path).unwrap();
     }
 
     #[test]
     fn test_auto_flush(){
-        let path = "/tmp/_kafi_test_3.db";
+        let path = _gen_filename();
         {
             use std::fs;
-            let _ = fs::remove_file(path);
+            let _ = fs::remove_file(&path);
         }
         {
-            let mut col:Store<String, String> = Store::open(path).unwrap();
+            let mut col:Store<String, String> = Store::open(&path).unwrap();
             col.insert("satu".to_string(), "111".to_string());
-            assert_eq!(std::path::Path::new(path).exists(), false);
+            assert_eq!(std::path::Path::new(&path).exists(), false);
         }
-        assert_eq!(std::path::Path::new(path).exists(), true);
+        assert_eq!(std::path::Path::new(&path).exists(), true);
+        remove_file(path).unwrap();
     }
 }
