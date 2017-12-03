@@ -11,20 +11,18 @@ Usage
 
 extern crate kafi;
 
-use kafi::HashMap;
+use kafi::Store;
 
-let mut col:HashMap<String, String> = HashMap::open("kafi.db").unwrap();
+let mut store:Store<String, String> = Store::open("kafi.db").unwrap();
 
-col.insert("satu".to_string(), "111".to_string());
-assert_eq!(col.exists("satu"), true);
+store.insert("satu".to_string(), "111".to_string());
+assert_eq!(store.exists("satu"), true);
 
-col.flush().unwrap(); // <-- call flush to persist into disk
+store.flush().unwrap(); // <-- call flush to persist into disk
 
-assert_eq!(col.get("satu"), Some(&"111".to_string()));
-assert_eq!(col.get("lima"), None);
+assert_eq!(store.get("satu"), Some(&"111".to_string()));
+assert_eq!(store.get("lima"), None);
 ```
 
 
 [] Robin Sy.
-
-

@@ -16,14 +16,14 @@ use serde::ser::Serialize;
 use serde::de::DeserializeOwned;
 use bincode::{serialize, deserialize, Infinite};
 
-pub struct HashMap<K, V>
+pub struct Store<K, V>
     where K: Serialize + DeserializeOwned + Eq + Hash,
           V: Serialize + DeserializeOwned + Eq + Hash {
     file_path: PathBuf,
     data: StdHashMap<K, V>
 }
 
-impl<K, V> HashMap<K, V>
+impl<K, V> Store<K, V>
     where K: Serialize + DeserializeOwned + Eq + Hash,
           V: Serialize + DeserializeOwned + Eq + Hash {
 
@@ -55,7 +55,7 @@ impl<K, V> HashMap<K, V>
             StdHashMap::new()
         };
 
-        Ok(HashMap {
+        Ok(Store {
             file_path: path.to_path_buf(),
             data
         })
@@ -94,7 +94,7 @@ impl<K, V> HashMap<K, V>
     }
 }
 
-impl<K, V> Drop for HashMap<K, V>
+impl<K, V> Drop for Store<K, V>
     where K: Serialize + DeserializeOwned + Eq + Hash,
           V: Serialize + DeserializeOwned + Eq + Hash {
 
@@ -108,8 +108,8 @@ mod test {
 
     use super::*;
 
-    fn _gen_col() -> HashMap<String, String> {
-        let mut col = HashMap::open("/tmp/_kafi_test_.db").unwrap();
+    fn _gen_col() -> Store<String, String> {
+        let mut col = Store::open("/tmp/_kafi_test_.db").unwrap();
         col.insert("satu".to_string(), "111".to_string());
         let _ = col.flush();
         col
@@ -144,12 +144,12 @@ mod test {
             let _ = fs::remove_file(path);
         }
         {
-            let mut col:HashMap<String, String> = HashMap::open(path).unwrap();
+            let mut col:Store<String, String> = Store::open(path).unwrap();
             col.insert("satu".to_string(), "111".to_string());
             col.flush().unwrap();
         }
         {
-            let mut col:HashMap<String, String> = HashMap::open(path).unwrap();
+            let mut col:Store<String, String> = Store::open(path).unwrap();
             assert_eq!(col.exists("satu"), true);
             assert_eq!(col.get("satu"), Some(&"111".to_string()));
             assert_eq!(col.get("lima"), None);
@@ -158,7 +158,7 @@ mod test {
             col.flush().unwrap();
         }
     }
-    
+
     #[test]
     fn test_auto_flush(){
         let path = "/tmp/_kafi_test_3.db";
@@ -167,11 +167,10 @@ mod test {
             let _ = fs::remove_file(path);
         }
         {
-            let mut col:HashMap<String, String> = HashMap::open(path).unwrap();
+            let mut col:Store<String, String> = Store::open(path).unwrap();
             col.insert("satu".to_string(), "111".to_string());
             assert_eq!(std::path::Path::new(path).exists(), false);
         }
         assert_eq!(std::path::Path::new(path).exists(), true);
     }
 }
-
