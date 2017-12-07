@@ -2,6 +2,7 @@ KAFI
 =======
 
 [![Build Status](https://travis-ci.org/anvie/kafi.svg?branch=master)](https://travis-ci.org/anvie/kafi)
+[![Build status](https://ci.appveyor.com/api/projects/status/yoqd9gnvb9cv0a94?svg=true)](https://ci.appveyor.com/project/anvie/kafi)
 [![Crates.io](https://img.shields.io/crates/v/kafi.svg)](https://crates.io/crates/kafi)
 
 Persistent key value store library for Rust.
