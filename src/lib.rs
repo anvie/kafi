@@ -20,7 +20,8 @@ pub struct Store<K, V>
     where K: Serialize + DeserializeOwned + Eq + Hash,
           V: Serialize + DeserializeOwned + Eq + Hash {
     file_path: PathBuf,
-    data: StdHashMap<K, V>
+    data: StdHashMap<K, V>,
+    _modified: bool
 }
 
 impl<K, V> Store<K, V>
@@ -57,7 +58,8 @@ impl<K, V> Store<K, V>
 
         Ok(Store {
             file_path: path.to_path_buf(),
-            data
+            data,
+            _modified: false
         })
     }
 
@@ -73,24 +75,34 @@ impl<K, V> Store<K, V>
 
     pub fn insert(&mut self, key: K, v: V) {
         self.data.insert(key, v);
+        self._modified = true;
     }
 
     pub fn remove<Q>(&mut self, key: &Q) -> Option<V>
         where Q: ?Sized + std::hash::Hash + Eq, K: Borrow<Q> {
-        self.data.remove(key)
+        let rv = self.data.remove(key);
+        self._modified = true;
+        rv
     }
 
     pub fn flush(&mut self) -> Result<(), String> {
+        if self._modified{
+            let mut file =
+                OpenOptions::new().write(true).create(true).truncate(true)
+                    .open(&self.file_path)
+                    .map_err(|e| e.description().to_string())?;
 
-        let mut file =
-            OpenOptions::new().write(true).create(true).truncate(true)
-                .open(&self.file_path)
-                .map_err(|e| e.description().to_string())?;
+            let encoded = serialize(&self.data, Infinite).unwrap();
 
-        let encoded = serialize(&self.data, Infinite).unwrap();
+            let rv = file.write_all(&*encoded)
+                .map_err(|e| e.description().to_string());
 
-        file.write_all(&*encoded)
-            .map_err(|e| e.description().to_string())
+            self._modified = false;
+
+            rv
+        }else{
+            Ok(())
+        }
     }
 
     pub fn get_path<'a>(&'a self) -> &Path {
@@ -104,7 +116,13 @@ impl<K, V> Drop for Store<K, V>
           V: Serialize + DeserializeOwned + Eq + Hash {
 
     fn drop(&mut self) {
-        self.flush().unwrap()
+        match self.flush(){
+            Err(e) => {
+                eprintln!("Cannot flush {}: {:?}", self.file_path.display(), e);
+                panic!(format!("Cannot flush {}: {:?}", self.file_path.display(), e));
+            },
+            _ => ()
+        }
     }
 }
 
