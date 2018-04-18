@@ -109,6 +109,10 @@ impl<K, V> Store<K, V>
         self.file_path.as_path()
     }
 
+    pub fn clear(&mut self){
+        self.data.clear();
+    }
+
 }
 
 impl<K, V> Drop for Store<K, V>
@@ -172,6 +176,14 @@ mod test {
     fn test_remove(){
         let mut col = _gen_col();
         assert_eq!(col.remove("satu"), Some("111".to_string()));
+        assert_eq!(col.exists("satu"), false);
+        remove_file(col.get_path()).unwrap();
+    }
+
+    #[test]
+    fn test_clear(){
+        let mut col = _gen_col();
+        col.clear();
         assert_eq!(col.exists("satu"), false);
         remove_file(col.get_path()).unwrap();
     }
