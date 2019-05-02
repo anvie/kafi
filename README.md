@@ -5,7 +5,7 @@ KAFI
 [![Build status](https://ci.appveyor.com/api/projects/status/yoqd9gnvb9cv0a94?svg=true)](https://ci.appveyor.com/project/anvie/kafi)
 [![Crates.io](https://img.shields.io/crates/v/kafi.svg)](https://crates.io/crates/kafi)
 
-Persistent key value store library for Rust.
+Super simple persistent key value store library for Rust.
 
 Install
 --------
