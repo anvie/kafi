@@ -30,8 +30,8 @@ where
     K: Serialize + DeserializeOwned + Eq + Hash,
     V: Serialize + DeserializeOwned + Eq + Hash,
 {
-    pub fn open(path: &str) -> Result<Self, String> {
-        let path = Path::new(path);
+    pub fn open<P: AsRef<Path>>(path: P) -> Result<Self, String> {
+        let path = path.as_ref();
 
         let _new = !path.exists();
 
@@ -83,8 +83,14 @@ where
         self.data.get(key.borrow()).is_some()
     }
 
-    pub fn insert(&mut self, key: K, v: V) {
-        self.data.insert(key, v);
+    pub fn insert<X, Y>(&mut self, key: X, v: Y)
+    where
+        X: Into<K>,
+        Y: Into<V>,
+        K: Clone,
+        Y: Clone,
+    {
+        self.data.insert(key.into(), v.into());
         self._modified = true;
     }
 
@@ -171,7 +177,7 @@ mod test {
 
     fn _gen_col() -> Store<String, String> {
         let mut col = Store::open(&_gen_filename()).unwrap();
-        col.insert("satu".to_string(), "111".to_string());
+        col.insert("satu", "111".to_string());
         let _ = col.flush();
         col
     }
@@ -246,5 +252,15 @@ mod test {
         }
         assert_eq!(std::path::Path::new(&path).exists(), true);
         remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn test_another_inserts() {
+        let mut col = _gen_col();
+        col.insert("two", "2");
+        let three = "three".to_string();
+        col.insert(three, "3");
+        assert_eq!(col.get("two"), Some(&"2".to_owned()));
+        assert_eq!(col.get("three"), Some(&"3".to_owned()));
     }
 }

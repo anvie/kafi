@@ -27,7 +27,7 @@ use kafi::Store;
 
 let mut store:Store<String, String> = Store::open("kafi.db").unwrap();
 
-store.insert("satu".to_string(), "111".to_string());
+store.insert("satu", "111".to_string());
 assert_eq!(store.exists("satu"), true);
 
 store.flush().unwrap(); // <-- call flush to persist into disk
