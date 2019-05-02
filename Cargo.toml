@@ -1,8 +1,8 @@
 [package]
 name = "kafi"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["robin <r@nosql.asia"]
-description = "Simple persistent key value store library for Rust."
+description = "Super simple persistent key value store library for Rust."
 license = "MIT"
 hompage = "https://github.com/anvie/kafi"
 repository = "https://github.com/anvie/kafi"

@@ -12,7 +12,7 @@ Install
 
 ```
 [dependencies]
-kafi = "0.1.0"
+kafi = "0.1.2"
 ```
 
 
