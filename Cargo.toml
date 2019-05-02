@@ -1,6 +1,6 @@
 [package]
 name = "kafi"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["robin <r@nosql.asia"]
 description = "Simple persistent key value store library for Rust."
 license = "MIT"
