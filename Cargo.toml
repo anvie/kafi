@@ -4,7 +4,7 @@ version = "0.1.2"
 authors = ["robin <r@nosql.asia"]
 description = "Super simple persistent key value store library for Rust."
 license = "MIT"
-hompage = "https://github.com/anvie/kafi"
+homepage = "https://github.com/anvie/kafi"
 repository = "https://github.com/anvie/kafi"
 
 [dependencies]
